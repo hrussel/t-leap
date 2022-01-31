@@ -1,0 +1,48 @@
+# Folder locations and other settings
+data_folder: "path/to/data/folder"
+dataset_csv: "path/to/csv_file"
+dataset_test: "path/to/test_csv_file"
+# Run configuration
+device: "cuda:0"
+frequent: 1
+save_checkpoint: "./" # directory where to save the checkpoints.
+load_checkpoint: No
+file_format: "%d.png"
+wandb: No
+group: "tleap"
+keypoints:
+  - LFHoof
+  - LFAnkle
+  - LFKnee
+  - RFHoof
+  - RFAnkle
+  - RFKnee
+  - LHHoof
+  - LHAnkle
+  - LHKnee
+  - RHHoof
+  - RHAnkle
+  - RHKnee
+  - Nose
+  - HeadTop
+  - Spine1
+  - Spine2
+  - Spine3
+# Means and standard deviations for regularization
+regularize: 
+  mean:
+    - 0
+    - 0
+    - 0
+  std:
+    - 1
+    - 1
+    - 1
+# Hyper parameters
+epochs: 5350
+batch_size: 8
+lr: 0.001
+lr_decay: Yes
+seq_length: 4
+optimizer: 'amsgrad'
+depth: 3
