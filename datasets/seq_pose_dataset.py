@@ -284,6 +284,23 @@ class SequentialPoseDataset(Dataset):
     class CropBody(object):
 
         def __init__(self, margin=50, crop_width=-1, random=False, square=False, keep_orig=False):
+            """
+            Crops a sequence of images by placing a bounding box around the keypoints,
+            and returns the cropped image and keypoints in a sample
+
+            :param margin: the margin to place around the left, right, top and bottom keypoints. Default=50
+            :param crop_width: the width of the bounding box. Leave to -1.
+            :param random: whether to add a random margin around the bbox. Default=False.
+            :param square: whether the cropping bbox is squared.
+            If True, the height and width of the bbox will be set by the
+            left-most keypoint and the right-most keypoint + margin. Default=False.
+            :param keep_orig: Whether to keep the non-cropped image and corresponding keypoints in the sample.
+            Default=False.
+
+            :return: a sample dictionnary containing the sequence of cropped images, and the keypoints.
+            If `keep_orig` is set to True, the sample also contains the bboxes, the original (no-cropped) frames, and
+            the location of the keypoints in the non-cropped frames.
+            """
             self.margin = margin
             self.random = random
             self.square = square
@@ -304,53 +321,71 @@ class SequentialPoseDataset(Dataset):
             bboxes = []
             originals = []
             rnd = None
+
+            # Loop through each frame in the sequence
             for i, image in enumerate(frames):
+
                 if self.keep_orig:
                     originals.append(image)
+
                 keypoints = seq_keypoints[i]
-                x_min, y_min = np.nanmin(keypoints, axis=0).astype(int)
-                x_max, y_max = np.nanmax(keypoints, axis=0).astype(int)
+
+                x_min, y_min = np.nanmin(keypoints, axis=0).astype(int) # Left-most and bottom most keypoints
+                x_max, y_max = np.nanmax(keypoints, axis=0).astype(int) # Right-most and top most keypoints
+
                 h, w = image.shape[:2]
 
                 if i == 0 and crop_width == -1:
+                    # If it's the first frame in the sequence, and we don't have a defined crop width,
+                    # set the width to the distance between the left- and right-most keypoint + twice the margin.
+                    # If it's square, the height will be the same as the width
                     crop_height = crop_width = (x_max - x_min) + self.margin * 2
                     if not self.square:
+                        # If not square, the height is the distance between the top- and bottom-most keypoint
+                        # + twice the margin
                         crop_height = (y_max - y_min) + self.margin * 2
 
                 if i == 0:
-                    x_mid = x_min + (x_max - x_min) // 2
-                    x_left = x_mid - crop_width // 2
+                    # define the bbox for the first frame of the sequence,
+                    # the other frames in the sequence will have the same bbox.
+                    x_mid = x_min + (x_max - x_min) // 2  # horizontal center of bbox
+                    x_left = x_mid - crop_width // 2   # left side of bbox
 
                     if self.random and rnd is None:
+                        # add random noise to the bbox
                         rnd = np.random.randint(-self.margin, self.margin)
                         x_left -= rnd
 
+                    # if the bbox is outside of the image to the left, place it at x = 0
                     if x_left < 0:
                         x_left = 0
 
+                    # if the bbox is outside of the image to the right, place it at the border of the image
                     if x_left + crop_width > w:
                         x_left -= (x_left + crop_width) - w
 
-                    x_right = x_left + crop_width
+                    x_right = x_left + crop_width  # right side of the bbox
 
-                    y_mid = y_min + (y_max - y_min) // 2
-                    y_top = y_mid - crop_height //2
+                    y_mid = y_min + (y_max - y_min) // 2  # vertical center
+                    y_top = y_mid - crop_height // 2  # top of the bbox
 
                     if self.random and rnd is None:
                         rnd = np.random.randint(-self.margin, self.margin)
                         y_top -= rnd
 
+                    # if the bbox is outside of the image to the top, place it at y = 0
                     if y_top < 0:
                         y_top = 0
 
+                    # if the bbox is outside of the image to the bottom, place it at the border of the image
                     if y_top + crop_height > h:
                         y_top -= (y_top + crop_height) - h
 
-                    y_bottom = y_top + crop_height
+                    y_bottom = y_top + crop_height  # bottom side of the bbox
 
-                image = image[y_top:y_bottom, x_left:x_right]
+                image = image[y_top:y_bottom, x_left:x_right]  # the cropped image
 
-                keypoints = keypoints - [x_left, y_top]
+                keypoints = keypoints - [x_left, y_top]   # adjust the keypoints to the cropped image
 
                 frames[i] = image
                 seq_keypoints[i] = keypoints
@@ -358,6 +393,7 @@ class SequentialPoseDataset(Dataset):
                 bboxes.append([y_top, y_bottom, x_left, x_right])
 
             sample['seq'], sample['keypoints'] = frames, seq_keypoints
+
             if self.keep_orig:
                 sample['bboxes'] = bboxes
                 sample['orig_seq'] = originals
