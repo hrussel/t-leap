@@ -71,11 +71,10 @@ def validate(model, criterion, data_loader, config, show=False, save=False, PCK=
 
             losses.append(criterion(test_outputs, targets))
 
-            # if show and i % 20 == 0:
             if show or save:
                 keypoints_pred = get_keypoints(test_outputs[0])
                 figure = show_keypoints(data['seq'][0][-1], keypoints_pred.cpu(),
-                                        save=save, save_fname=os.path.join(save_path, 'test_'+str(i)+'.png'), cmap='gray', tb=False)
+                                        save=save, save_fname=os.path.join(save_path, 'test_'+str(i)+'.png'), cmap='gray', tb=(not show))
                 if config.wandb:
                     figures.append(
                         wandb.Image(figure))
@@ -182,8 +181,15 @@ def main():
         scheduler.load_state_dict(checkpoint['scheduler'])
         criterion = checkpoint['loss']
 
+    fig_save_path = os.path.join(config.save_checkpoint, tb_comment + '_' + current_time)
+    if not os.path.exists(fig_save_path):
+        os.mkdir(fig_save_path)
+
     iterations = 0
     epoch = 0
+    epoch_fig_save = False
+    train_fig_save_path = ""
+
     while iterations < config.epochs:
 
         model.train()
@@ -207,7 +213,16 @@ def main():
 
         accuracy = euclidian_distance_error(batch_keypoints[:, -1], batch_preds)
 
-        val_accuracy, val_loss, val_figures, val_PCK = validate(model, criterion, test_loader, config, show=True, PCK=True, save=False)
+        # Save val figures every [frequent] epoch
+        if config.frequent > 0 and (epoch % config.frequent == 0):
+            train_fig_save_path = os.path.join(fig_save_path, 'train_%d' % epoch)
+            if not os.path.exists(train_fig_save_path):
+                os.mkdir(train_fig_save_path)
+            epoch_fig_save = True
+        else:
+            epoch_fig_save = False
+
+        val_accuracy, val_loss, val_figures, val_PCK = validate(model, criterion, test_loader, config, show=False, PCK=True, save=epoch_fig_save, save_path=train_fig_save_path)
         print("Validation loss at epoch %d: %.6f, RMSE: %.2f, PCKh@0.5: %.2f" % (epoch, val_loss, val_accuracy, val_PCK[5]))
 
         if config.wandb:
@@ -234,9 +249,7 @@ def main():
     ###########
     # TESTING
     # Perform the evaluation on the whole test set
-    fig_save_path = os.path.join(config.save_checkpoint, tb_comment + '_' + current_time)
-    if not os.path.exists(fig_save_path):
-        os.mkdir(fig_save_path)
+
     test_RSME, test_loss, test_figures, test_PCK = validate(model, criterion, test_loader, config, show=False, save=True, PCK=True, save_path=fig_save_path)
     print("Test RMSE: %.2f" %(test_RSME))
     print("Test PCKh@[thr]:")
