@@ -37,7 +37,7 @@ from utils.train_utils import save_model, load_model, seed_all, seed_worker
 from core.evaluate import euclidian_distance_error, PCKh
 
 
-def validate(model, criterion, data_loader, config, show=False, save=False, PCK=False):
+def validate(model, criterion, data_loader, config, show=False, save=False, PCK=False, save_path="."):
     """
     Evaluate the model on unseen data
     :param model: the model to evaluate
@@ -71,10 +71,11 @@ def validate(model, criterion, data_loader, config, show=False, save=False, PCK=
 
             losses.append(criterion(test_outputs, targets))
 
-            if show and i % 20 == 0:
+            # if show and i % 20 == 0:
+            if show or save:
                 keypoints_pred = get_keypoints(test_outputs[0])
                 figure = show_keypoints(data['seq'][0][-1], keypoints_pred.cpu(),
-                                        save=save, save_fname='test_'+str(i)+'.png', cmap='gray', tb=False)
+                                        save=save, save_fname=os.path.join(save_path, 'test_'+str(i)+'.png'), cmap='gray', tb=False)
                 if config.wandb:
                     figures.append(
                         wandb.Image(figure))
@@ -233,7 +234,10 @@ def main():
     ###########
     # TESTING
     # Perform the evaluation on the whole test set
-    test_RSME, test_loss, test_figures, test_PCK = validate(model, criterion, test_loader, config, show=True, save=False, PCK=True)
+    fig_save_path = os.path.join(config.save_checkpoint, tb_comment + '_' + current_time)
+    if not os.path.exists(fig_save_path):
+        os.mkdir(fig_save_path)
+    test_RSME, test_loss, test_figures, test_PCK = validate(model, criterion, test_loader, config, show=False, save=True, PCK=True, save_path=fig_save_path)
     print("Test RMSE: %.2f" %(test_RSME))
     print("Test PCKh@[thr]:")
     for thr in test_PCK.keys():
