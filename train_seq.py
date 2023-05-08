@@ -36,10 +36,6 @@ from utils.data_utils import get_keypoints, get_keypoints_batch, dataset_split
 from utils.train_utils import save_model, load_model, seed_all, seed_worker
 from core.evaluate import euclidian_distance_error, PCKh
 
-import wandb
-
-
-# WANDB = False # Whether to use Weights and Biases. (Highly recommended but not necessary)
 
 def validate(model, criterion, data_loader, config, show=False, save=False, PCK=False):
     """
@@ -79,8 +75,9 @@ def validate(model, criterion, data_loader, config, show=False, save=False, PCK=
                 keypoints_pred = get_keypoints(test_outputs[0])
                 figure = show_keypoints(data['seq'][0][-1], keypoints_pred.cpu(),
                                         save=save, save_fname='test_'+str(i)+'.png', cmap='gray', tb=False)
-                figures.append(
-                    wandb.Image(figure))
+                if config.wandb:
+                    figures.append(
+                        wandb.Image(figure))
 
     if PCK:
         for thr in test_PCKh.keys():
@@ -103,6 +100,7 @@ def main():
 
     #WandB (Weights and Biases) init
     if config.wandb:
+        import wandb
         run = wandb.init(project="cowpose", group=config.group)
 
         # WandB – Config is a variable that holds and saves hyperparameters and inputs
@@ -127,21 +125,11 @@ def main():
     ###########################
 
     # TRAIN SET
-    if "horse" in config.group:
-        train_transform = [
-            SequentialPoseDataset.RandomRotate(10),
-            SequentialPoseDataset.BrightnessContrast(brightness=(-100, 100), contrast=(-3, 3)),
-            SequentialPoseDataset.Rescale(200)
-        ]
-        val_transform = [
-            SequentialPoseDataset.Rescale(200)
-        ]
-    else:
-        train_transform = [
-            SequentialPoseDataset.RandomRotate(10),
-            SequentialPoseDataset.BrightnessContrast(brightness=(-100, 100), contrast=(-3, 3)),
-        ]
-        val_transform = None
+    train_transform = [
+        SequentialPoseDataset.RandomRotate(10),
+        SequentialPoseDataset.BrightnessContrast(brightness=(-100, 100), contrast=(-3, 3)),
+    ]
+    val_transform = None
 
     train_dataset = SequentialPoseDataset(video_list=config.dataset_csv,
                                           video_dir=config.data_folder,

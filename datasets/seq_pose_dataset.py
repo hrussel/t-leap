@@ -63,17 +63,17 @@ class SequentialPoseDataset(Dataset):
 
         self.dataset = []
         self.isTest = is_test
-        self.MAX_SEQ = 4
+        # self.MAX_SEQ = 4
         self.file_format = file_format
-        self.STEP = 4
+        # self.STEP = 4
 
         if is_test:
             self.crop_widths = {}
         self.videos = self.videos.reshape(-1, 3)
         for video, start, end in self.videos:
-            # self.dataset.extend([[video, i] for i in range(int(start), int(end) - seq_length + 2)])
+            self.dataset.extend([[video, i] for i in range(int(start), int(end) - seq_length + 2)])
             # self.dataset.extend([[video, i] for i in range(int(start), int(end) - self.MAX_SEQ + 2)]) # same number of samples for any seq length
-            self.dataset.extend([[video, i + self.MAX_SEQ - 1] for i in range(int(start), int(end) - self.MAX_SEQ + 2, self.STEP)])  # same number of samples for any seq length
+            # self.dataset.extend([[video, i + self.MAX_SEQ - 1] for i in range(int(start), int(end) - self.MAX_SEQ + 2, self.STEP)])  # same number of samples for any seq length
 
     def __getitem__(self, item):
 
@@ -81,7 +81,7 @@ class SequentialPoseDataset(Dataset):
         frames = self._get_video_frames(video, start, self.file_format, opencv=False)
         csvfilenmae = video.split('.')[0]+'.csv'
         labels = pd.read_csv(os.path.join(self.labels_dir,csvfilenmae ))
-        seq_labels = labels[(labels['frame'] > (start - self.seq_length)) & (labels['frame'] <= start)].iloc[:, 2:]
+        seq_labels = labels[(labels['frame'] >= start) & (labels['frame'] < (start + self.seq_length))].iloc[:, 2:]
 
         # in csv file, keypoints for a part are in format: part1_x, part1_y, part1_likelihood, part2_x, part2_y, ...
         keypoints_idx = [True, True, False] * self.n_keypoints
@@ -148,11 +148,11 @@ class SequentialPoseDataset(Dataset):
         video_path = os.path.join(self.video_dir, video_name)
 
         frames = []
-        for i in range(self.seq_length):
-            s = self.seq_length - i
-            frame_path = os.path.join(video_path, file_format % (start_frame - s + 1))
-        # for i in range(start_frame, start_frame+self.seq_length):
-        #     frame_path = os.path.join(video_path, file_format % i)
+        # for i in range(self.seq_length):
+        #     s = self.seq_length - i
+        #     frame_path = os.path.join(video_path, file_format % (start_frame - s + 1))
+        for i in range(start_frame, start_frame + self.seq_length):
+            frame_path = os.path.join(video_path, file_format % i)
             frame = cv2.imread(frame_path, cv2.IMREAD_COLOR)
             if frame is None:
                 print("here FRAME NONE")

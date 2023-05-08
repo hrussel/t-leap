@@ -1,0 +1,48 @@
+# Folder locations and other settings
+data_folder: "/home/helena/Videos/Bodegraven_SideView_TLEAP/Cropped_Dataset_Frames"
+dataset_csv: "/home/helena/Videos/Bodegraven_SideView_TLEAP/Subset_A.csv"
+dataset_test: "/home/helena/Videos/Bodegraven_SideView_TLEAP/Testset_C.csv"
+# Run configuration
+device: "cuda:0"
+frequent: 1
+save_checkpoint: "/home/helena/Videos/Bodegraven_SideView_TLEAP/checkpoints" # directory where to save the checkpoints.
+load_checkpoint: No
+file_format: "%d.png"
+wandb: No
+group: "tleap"
+keypoints:
+  - LF_hoof
+  - LF_fetlock
+  - LF_carpal
+  - RF_hoof
+  - RF_fetlock
+  - RF_carpal
+  - LH_hoof
+  - LH_fetlock
+  - LH_carpal
+  - RH_hoof
+  - RH_fetlock
+  - RH_carpal
+  - Nose
+  - Forehead
+  - Withers
+  - Caudal_thoracic_vertebrae
+  - Sacrum
+# Means and standard deviations for regularization
+regularize:
+  mean:
+    - 0
+    - 0
+    - 0
+  std:
+    - 1
+    - 1
+    - 1
+# Hyper parameters
+epochs: 5350
+batch_size: 8
+lr: 0.001
+lr_decay: Yes
+seq_length: 2
+optimizer: 'amsgrad'
+depth: 4
