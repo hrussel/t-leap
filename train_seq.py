@@ -190,7 +190,7 @@ def main():
     epoch_fig_save = False
     train_fig_save_path = ""
 
-    while iterations < config.epochs:
+    while epoch < config.epochs:
 
         model.train()
         for step, batch in enumerate(train_loader):
@@ -240,7 +240,7 @@ def main():
         plt.close('all')
 
         if config.save_checkpoint:
-            model_saved = save_model(config, model, epoch, optimizer, scheduler, criterion, config.save_checkpoint + tb_comment + '_' + current_time )
+            model_saved = save_model(config, model, epoch, optimizer, scheduler, criterion, os.path.join(config.save_checkpoint, tb_comment + '_' + current_time + '.model') )
 
         epoch += 1
     # end epochs
@@ -250,9 +250,13 @@ def main():
     ###########
     # TESTING
     # Perform the evaluation on the whole test set
+    test_fig_save_path = os.path.join(fig_save_path, 'test')
+    if not os.path.exists(test_fig_save_path):
+        os.mkdir(test_fig_save_path)
+
     print("Saving test images to %s" % fig_save_path)
 
-    test_RSME, test_loss, test_figures, test_PCK = validate(model, criterion, test_loader, config, show=False, save=True, PCK=True, save_path=fig_save_path)
+    test_RSME, test_loss, test_figures, test_PCK = validate(model, criterion, test_loader, config, show=False, save=True, PCK=True, save_path=test_fig_save_path)
     print("Test RMSE: %.2f" %(test_RSME))
     print("Test PCKh@[thr]:")
     for thr in test_PCK.keys():
