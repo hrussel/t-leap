@@ -219,6 +219,7 @@ def main():
             if not os.path.exists(train_fig_save_path):
                 os.mkdir(train_fig_save_path)
             epoch_fig_save = True
+            print("Saving validation images to %s" % train_fig_save_path)
         else:
             epoch_fig_save = False
 
@@ -249,6 +250,7 @@ def main():
     ###########
     # TESTING
     # Perform the evaluation on the whole test set
+    print("Saving test images to %s" % fig_save_path)
 
     test_RSME, test_loss, test_figures, test_PCK = validate(model, criterion, test_loader, config, show=False, save=True, PCK=True, save_path=fig_save_path)
     print("Test RMSE: %.2f" %(test_RSME))
