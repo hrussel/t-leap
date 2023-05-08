@@ -240,7 +240,9 @@ def main():
         plt.close('all')
 
         if config.save_checkpoint:
-            model_saved = save_model(config, model, epoch, optimizer, scheduler, criterion, os.path.join(config.save_checkpoint, tb_comment + '_' + current_time + '.model') )
+            model_save_path = os.path.join(config.save_checkpoint, tb_comment + '_' + current_time + '.model')
+            model_saved = save_model(config, model, epoch, optimizer, scheduler, criterion, model_save_path )
+            print(f"Saved model at {model_save_path}")
 
         epoch += 1
     # end epochs
