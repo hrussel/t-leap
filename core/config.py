@@ -115,6 +115,8 @@ class MyConfig(object):
         if args.depth:
             self.depth = args.depth
             self.config['depth'] = args.depth
+        if args.load_checkpoint:
+            self.load_checkpoint = args.load_checkpoint
 
         self.seed = args.seed
         self.original_size = args.original_size
@@ -163,7 +165,9 @@ def parse_args(description):
     parser.add_argument('--depth',
                         help='Depth of LEAP',
                         type=int)
-
+    parser.add_argument('--load_checkpoint',
+                        help='Path to the models',
+                        type=str)
     ###############
     # For testing #
     ###############
