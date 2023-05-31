@@ -174,8 +174,6 @@ def main():
     # LOAD MODEL
     if config.load_checkpoint:
         checkpoint = load_model(config.load_checkpoint)
-        config = checkpoint['config']
-        start_epoch = checkpoint['epoch']
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
         scheduler.load_state_dict(checkpoint['scheduler'])
