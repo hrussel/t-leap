@@ -121,8 +121,8 @@ def get_heatmaps_likelihood(sample, sigma=5, normalize=True):
             continue
         kx = keypoint[0]
         ky = keypoint[1]
-        # i_sigma = sigma
-        i_sigma = sigma / likelihood[i]
+        i_sigma = sigma
+        # i_sigma = sigma / likelihood[i]
         # Gaussian distribution with peak at the keypoint annotation
         heatmaps[i] = np.exp(-((yy - ky) ** 2 + (xx - kx) ** 2) / (2 * i_sigma ** 2))
 
