@@ -1,0 +1,48 @@
+data_folder: "/content/drive/MyDrive/TLEAP_colab_data/dataset_frames"  # folder where the video frames are stored
+dataset_csv: "/content/drive/MyDrive/TLEAP_colab_data/trainingset.csv"  # path  to the list of training samples
+dataset_test: "/content/drive/MyDrive/TLEAP_colab_data/testset.csv"  # path to the list of test samples
+# Run configuration
+device: "cuda:0"
+frequent: -1  # How often to output progress 
+save_checkpoint: "/content/drive/MyDrive/TLEAP_colab_data/" # directory where to save the checkpoints.
+load_checkpoint: No  # 'No'= train from scratch; "/path/to/checkpoint"=load weights from checkpoint
+file_format: "%d.png"
+wandb: No
+group: "tleap"
+keypoints:
+  - LF hoof
+  - LF fetlock
+  - LF carpal
+  - RF hoof
+  - RF fetlock
+  - RF carpal
+  - LH hoof
+  - LH fetlock
+  - LH carpal
+  - RH hoof
+  - RH fetlock
+  - RH carpal
+  - Nose
+  - Forehead
+  - Withers
+  - Caudal thoracic vertebrae
+  - Sacrum
+# Means and standard deviations for regularization
+regularize: 
+  mean:
+    - 0
+    - 0
+    - 0
+  std:
+    - 1
+    - 1
+    - 1
+# Hyper parameters
+epochs: 5350
+batch_size: 1
+lr: 0.001
+lr_decay: Yes
+seq_length: 2
+optimizer: 'amsgrad'
+depth: 4
+
